@@ -1,0 +1,53 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-external-ingress
+  namespace: minio
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: minio-external.dsodemo.org
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-external-service
+                port:
+                  number: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-external-service
+  namespace: minio
+spec:
+  selector:
+    app: nginx-external
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-external
+  namespace: minio
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx-external
+  template:
+    metadata:
+      labels:
+        app: nginx-external
+    spec:
+      containers:
+        - name: nginx-external
+          image: nginx:latest
+          ports:
+            - containerPort: 80
